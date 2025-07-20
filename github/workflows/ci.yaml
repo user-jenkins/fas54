@@ -1,0 +1,20 @@
+name: CI
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Login to AWS
+      uses: aws-actions/login@v1
+    - name: Build and push image
+      run: |
+        docker build -t fas54:latest .
+        docker tag fas54:latest $AWS_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/fas54:latest
+        docker push $AWS_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/fas54:latest
+    - name: Deploy to EKS
+      uses: aws-actions/eks/deploy@v1
+      with:
+        cluster: fas54-eks-cluster
+        manifest: deployment.yaml
